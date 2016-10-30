@@ -44,6 +44,7 @@ public class RESTController {
 	public String viewProductList() {
 		return "admin";
 	}
+	
 
 	Connection con = null;
 
@@ -51,8 +52,7 @@ public class RESTController {
 	 * Function to establish the connection, the same connection is then used
 	 * across.
 	 */
-	@RequestMapping(value = "/connect")
-	public void connect() {
+	private void connect() {
 		try {
 			Class.forName(driverName);
 			con = DriverManager.getConnection(jdbcURL, username, password);
@@ -67,12 +67,13 @@ public class RESTController {
 
 	}
 
-	@RequestMapping(value = "/customQuery", method = RequestMethod.POST)
-	public @ResponseBody String submitSQLREST(@RequestBody Map<String, String> map) {
+	private String hiveSettingsSetter(List<String> list) {
 		Boolean result = null;
 		try {
 			Statement createStatement = con.createStatement();
-			result = createStatement.execute(map.get("query"));
+			for(String setting: list){
+				result = createStatement.execute(setting);
+			}
 		} catch (SQLException e) {
 			logger.error("SQL exception for " + e.getMessage());
 			e.printStackTrace();
@@ -85,11 +86,17 @@ public class RESTController {
 	}	
 	
 	@RequestMapping(value = "/query", method = RequestMethod.POST)
-	public @ResponseBody Map<String, String> submitSQLREST(@RequestBody QueryEntity queryEntity) {
-
+	public @ResponseBody List<Map<String, String>> queryExecutor(@RequestBody QueryEntity queryEntity) {
+		connect();
+		List<String> settingList = new ArrayList<>();
+		settingList.add("SET mapreduce.job.queuename=dashboard");
+		settingList.add("SET hive.exec.parallel=true");
+		settingList.add("SET hive.vectorized.execution.enabled=true");
+		settingList.add("SET hive.optimize.bucketmapjoin=true");
+		hiveSettingsSetter(settingList);
 		logger.debug("The query is : " + queryEntity.getQuery());
-		Map<String, String> result = new HashMap<String, String>();
-		List<String> arrayList = new ArrayList<String>();
+		
+		List<Map<String, String>> arrayList = new ArrayList<Map<String, String>>();
 		try {
 			Class.forName(driverName);
 		} catch (ClassNotFoundException e) {
@@ -110,7 +117,7 @@ public class RESTController {
 			ResultSetMetaData metadata = res.getMetaData();
 			int numberOfColumns = metadata.getColumnCount();
 			List<String> columns = new ArrayList<String>();
-
+			System.out.println("The number of columns is " + numberOfColumns);
 			for (int i = 1; i <= numberOfColumns; i++) {
 				String colName = metadata.getColumnLabel(i);
 				columns.add(colName);
@@ -118,26 +125,29 @@ public class RESTController {
 
 			while (res.next()) {
 				int i = 1;
+				Map<String, String> result = new HashMap<String, String>();
 				while (i <= numberOfColumns) {
-					String colVal = res.getString(i++);
-					result.put(columns.get(i), colVal);
-					arrayList.add(colVal);
+					String colVal = res.getString(i);
+					result.put(columns.get(i-1), colVal);
+					i++;
 				}
+				arrayList.add(result);
 			}
 		} catch (SQLException e) {
 			logger.error("SQL exception for " + e.getMessage());
 			e.printStackTrace();
+		}finally {
+			close();
 		}
 
-		return result;
+		return arrayList;
 	}
 	
 	
 	/**
 	 * Function to close the connection.
 	 */
-	@RequestMapping(value = "/close")
-	public void close() {
+	private void close() {
 		try {
 			con.close();
 		} catch (SQLException e) {
@@ -146,47 +156,3 @@ public class RESTController {
 		} 
 	}
 }
-
-// @RequestMapping(value = "/submit", method = RequestMethod.POST)
-// public String submitSQL(String val) {
-//
-// try {
-// Class.forName(driverName);
-// } catch (ClassNotFoundException e) {
-// // TODO Auto-generated catch block
-// e.printStackTrace();
-// System.exit(1);
-// }
-// try {
-// Connection con =
-// DriverManager.getConnection("jdbc:hive2://hadoop-hive-dc1-1:9443/default", ,
-// );
-// Statement stmt = con.createStatement();
-// ResultSet res = stmt.executeQuery(val);
-// ResultSetMetaData metadata = res.getMetaData();
-// int numberOfColumns = metadata.getColumnCount();
-// List<String> columns = new ArrayList<String>();
-// for (int i = 1; i <= numberOfColumns; i++) {
-//
-// String colName = metadata.getColumnLabel(i);
-// System.out.println("The col name is " + colName);
-// columns.add(colName);
-// }
-//
-// List<String> arrayList = new ArrayList<String>();
-// while (res.next()) {
-// int i = 1;
-// while (i <= numberOfColumns) {
-// String colVal = res.getString(i++);
-// System.out.println("Col value is " + colVal);
-// arrayList.add(colVal);
-// }
-// }
-// } catch (SQLException e) {
-// // TODO Auto-generated catch block
-// e.printStackTrace();
-// }
-//
-// System.out.println("The value is " + val);
-// return "admin";
-// }
