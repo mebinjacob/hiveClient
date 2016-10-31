@@ -1,6 +1,4 @@
-package hiveClient.controller;
-
-
+package hiveClient;
 
 import java.util.Arrays;
 

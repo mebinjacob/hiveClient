@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.test</groupId>
-	<artifactId>demo</artifactId>
+	<groupId>org.nvidia</groupId>
+	<artifactId>hvieClient</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>demo1</name>
-	<description>Demo project for Spring Boot</description>
+	<name>hiveClient</name>
+	<description>Nvidia - HiveClient</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -20,7 +20,6 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
 		<java.version>1.8</java.version>
 	</properties>
 
@@ -38,6 +37,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -69,11 +72,11 @@
 			<artifactId>neo4j-cypher-compiler-2.1</artifactId>
 			<version>2.1.5</version>
 		</dependency>
-		<dependency>
+<!-- 		<dependency>
 			<groupId>jfree</groupId>
 			<artifactId>jfreechart</artifactId>
 			<version>1.0.13</version>
-		</dependency>
+		</dependency> -->
 		<!-- https://mvnrepository.com/artifact/org.apache.hive/hive-jdbc -->
 		<dependency>
 			<groupId>org.apache.hive</groupId>
